@@ -56,6 +56,15 @@ OptionsForm, FilePicker, KeysScreen {
     margin-top: 1;
 }
 
+.dialog Input {
+    border: round $primary;
+    background: $surface;
+}
+
+.dialog Input:focus {
+    border: round $accent;
+}
+
 .dialog OptionList {
     height: auto;
     max-height: 14;

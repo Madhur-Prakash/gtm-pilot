@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from rich.text import Text
-from textual import on
+from textual import events, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -25,7 +25,7 @@ from ..sessions import describe, recent_files
 
 
 class PathInput(Input):
-    """Input where Tab completes the path instead of moving focus"""
+    """Input where Tab completes the path instead of moving focus."""
 
     BINDINGS = [
         Binding("tab", "complete", "Complete", show=False),
@@ -33,6 +33,9 @@ class PathInput(Input):
     ]
 
     def __init__(self, base: Path, suffixes: tuple[str, ...], **kwargs):
+        # Folder selection updates the path and returns focus here. Keep the
+        # cursor at the end so typing continues the path instead of replacing it.
+        kwargs.setdefault("select_on_focus", False)
         super().__init__(suggester=PathSuggester(base, suffixes), **kwargs)
         self.base = base
         self.suffixes = suffixes
@@ -136,11 +139,27 @@ class FilePicker(ModalScreen[Path | None]):
             self.dismiss(m.path)
             return
 
-        # A folder: open it in the path box and keep typing there
+        # A folder: update the path, then leave the matches list focused so
+        # arrow keys can immediately choose the next entry.
         box = self.query_one("#path", Input)
         box.value = m.text
         box.cursor_position = len(m.text)
+        files = self.query_one("#files", OptionList)
+        if files.display and files.option_count:
+            files.focus()
+        else:
+            box.focus()
+
+    def on_key(self, event: events.Key) -> None:
+        """Start editing the path directly when the matches list has focus."""
+        files = self.query_one("#files", OptionList)
+        if self.app.focused is not files or not event.character or not event.character.isprintable():
+            return
+
+        box = self.query_one("#path", Input)
         box.focus()
+        box.insert_text_at_cursor(event.character)
+        event.stop()
 
     # ---------- the path box ---------- #
 
