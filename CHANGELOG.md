@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [1.0.1](https://github.com/Madhur-Prakash/gtm-pilot/releases/compare/v1.0.0...v1.0.1) - 2026-11-15
+## [1.0.1](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.0...v1.0.1) - 2026-11-15
 
 Packaging and documentation fixes. No changes to the app.
 
