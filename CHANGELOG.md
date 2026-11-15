@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.2](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.1...v1.0.2) - 2026-11-16
+
+Dependency and documentation update.
+
+- gputaskman is now installed automatically as a runtime dependency of gtm-pilot.
+- Documented that gputaskman can also be installed separately for standalone use or
+  newer source commands.
+- Clarified the README description of gputaskman as gtm-pilot's backend.
+
 ## [1.0.1](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.0...v1.0.1) - 2026-11-15
 
 Packaging and documentation fixes. No changes to the app.

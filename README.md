@@ -21,12 +21,9 @@
 
 </div>
 
-gtm-pilot brings live GPU monitoring, snapshots, recordings, summaries, replays, and
-before-and-after comparisons into one focused menu. It runs the [gputaskman](https://github.com/shanselman/gputaskman) executable
-already installed on your machine and presents its output without changing measurements,
-labels, process names, or `n/a` values.
+gtm-pilot brings live GPU monitoring, snapshots, recordings, summaries, replays, and before-and-after comparisons into one focused menu. It uses the `gputaskman` executable, installed automatically as a package dependency or provided through a separate installation, while preserving its output exactly as reported - including measurements, labels, process names, and `n/a` values.
 
-gtm-pilot is an unofficial companion. It is not part of or affiliated with gputaskman.
+gtm-pilot is an independent, unofficial companion to [gputaskman](https://github.com/shanselman/gputaskman) and is not affiliated with its project or maintainers.
 
 ## Contents
 
@@ -59,16 +56,19 @@ gtm-pilot is an unofficial companion. It is not part of or affiliated with gputa
 ## Requirements
 
 - Python 3.11 or newer.
-- [gputaskman](https://github.com/shanselman/gputaskman), available as `gputaskman`
-  or `gtm` on `PATH`.
+- [gputaskman](https://github.com/shanselman/gputaskman), which is installed automatically as a dependency when gtm-pilot is installed.
 - A terminal that supports Textual applications.
 
-gtm-pilot does not install gputaskman automatically. It uses the executable you provide or
-the first compatible executable it discovers.
+gtm-pilot uses the installed `gputaskman` executable, or the first compatible executable
+it discovers.
 
 ## Installation
 
-### Install gputaskman
+### Install gputaskman manually (optional)
+
+Installing gtm-pilot installs gputaskman automatically. Install gputaskman separately
+only when you want to use it without gtm-pilot, or when you need the newest commands
+from its source repository.
 
 Install a released version with uv:
 
@@ -91,7 +91,7 @@ gputaskman --help
 
 ### Install gtm-pilot
 
-Install the published tool:
+Install the published tool (including its gputaskman dependency):
 
 ```powershell
 uv tool install gtm-pilot

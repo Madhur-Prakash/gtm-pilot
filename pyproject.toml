@@ -1,6 +1,6 @@
 [project]
 name = "gtm-pilot"
-version = "1.0.1"
+version = "1.0.2"
 description = "A guided menu for gputaskman: live view, snapshots, recordings, summaries and before/after diffs without remembering the flags. Unofficial companion."
 # Shown as the project page on PyPI
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -26,10 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: System :: Monitoring",
 ]
-# Same UI library gputaskman uses, so installing both adds nothing new.
-# gputaskman itself is not a dependency: gtm-pilot runs the gputaskman
-# command you already have installed (see README).
 dependencies = [
+    "gputaskman",
     "textual>=8.2.8",
 ]
 
