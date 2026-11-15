@@ -53,7 +53,7 @@ def action_prompt(action: Action, available: bool) -> Text:
     text = Text(f"[{action.key}] ", style="bold cyan" if available else "dim")
     text.append(action.title.ljust(TITLE_WIDTH), style="bold")
     if available:
-        text.append(action.description, style="dim")
+        text.append(action.description)
     else:
         text.append(f"needs a newer gputaskman (no '{action.needs}' command)", style="dim italic")
     return text
