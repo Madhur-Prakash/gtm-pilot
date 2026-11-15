@@ -1,8 +1,13 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+All notable changes to FileX are documented here.  
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-First version.
+---
+
+## [1.0.0](https://github.com/Madhur-Prakash/gtm-pilot/releases/tag/v1.0.0) - 2026-11-15
+
+First stable release.
 
 - Menu for gputaskman's live view, snapshot, record, summary, replay, diff and `--list-gpus`.
 - Forms with GPU picker and interval/duration presets (or a custom number of seconds).
@@ -18,3 +23,7 @@ First version.
 - If gputaskman isn't found, an error screen shows how to install it (uv tool or from source),
   and `r` looks again. If gputaskman is found but fails, the menu says why.
 - `--sessions` / `GTM_PILOT_SESSIONS` and `--gputaskman` / `GTM_PILOT_GPUTASKMAN`.
+- Root-level `gtm_pilot` package layout with support for editable installation using
+  `pip install -e .`.
+- Refreshed project documentation with installation, configuration, keyboard, data-file,
+  compatibility, and development guidance.
