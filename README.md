@@ -7,7 +7,7 @@
 
   [![PyPI version](https://img.shields.io/pypi/v/gtm-pilot.svg?logo=pypi&label=gtm-pilot%20on%20PyPI)](https://pypi.org/project/gtm-pilot/)
   [![PyPI Downloads](https://static.pepy.tech/personalized-badge/gtm-pilot?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads)](https://pepy.tech/projects/gtm-pilot)
-  ![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white)
+  ![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)
   ![License](https://img.shields.io/badge/License-MIT-green)
   ![Builds with Textual](https://img.shields.io/badge/built%20with-Textual-6f42c1.svg)
   ![Backend: gputaskman](https://img.shields.io/badge/backend-gputaskman-24292f.svg)

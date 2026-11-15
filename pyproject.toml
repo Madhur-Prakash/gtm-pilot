@@ -1,6 +1,6 @@
 [project]
 name = "gtm-pilot"
-version = "1.0.0"
+version = "1.0.1"
 description = "A guided menu for gputaskman: live view, snapshots, recordings, summaries and before/after diffs without remembering the flags. Unofficial companion."
 # Shown as the project page on PyPI
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -12,13 +12,18 @@ authors = [
 requires-python = ">=3.11"
 keywords = ["gpu", "vram", "gputaskman", "monitoring", "tui", "textual"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: System :: Monitoring",
 ]
 # Same UI library gputaskman uses, so installing both adds nothing new.

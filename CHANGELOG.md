@@ -1,7 +1,17 @@
 # Changelog
 
-All notable changes to FileX are documented here.  
+All notable changes to gtm-pilot are documented here.  
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+---
+
+## [1.0.1](https://github.com/Madhur-Prakash/gtm-pilot/releases/tag/v1.0.1) - 2026-11-15
+
+Packaging and documentation fixes. No changes to the app.
+
+- PyPI classifier now says **Production/Stable** (was Alpha), and lists Python 3.11 to 3.14.
+- README Python badge now says **3.11+**, matching `requires-python` (it said 3.8+).
+- This changelog now names gtm-pilot.
 
 ---
 
