@@ -1,0 +1,57 @@
+[project]
+name = "gtm-pilot"
+version = "0.1.0"
+description = "A guided menu for gputaskman: live view, snapshots, recordings, summaries and before/after diffs without remembering the flags. Unofficial companion."
+# Shown as the project page on PyPI
+readme = { file = "README.md", content-type = "text/markdown" }
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Madhur Prakash", email = "madhurprakash2005@gmail.com" }
+]
+requires-python = ">=3.11"
+keywords = ["gpu", "vram", "gputaskman", "monitoring", "tui", "textual"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Monitoring",
+]
+# Same UI library gputaskman uses, so installing both adds nothing new.
+# gputaskman itself is not a dependency: gtm-pilot runs the gputaskman
+# command you already have installed (see README).
+dependencies = [
+    "textual>=8.2.8",
+]
+
+[project.scripts]
+gtm-pilot = "gtm_pilot.cli:main"
+
+[project.urls]
+Repository = "https://github.com/Madhur-Prakash/gtm-pilot"
+Documentation = "https://github.com/Madhur-Prakash/gtm-pilot#readme"
+Homepage = "https://github.com/Madhur-Prakash/gtm-pilot"
+Issues = "https://github.com/Madhur-Prakash/gtm-pilot/issues"
+gputaskman = "https://github.com/shanselman/gputaskman"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+# Root package layout for regular and editable installs
+[tool.hatch.build.targets.wheel]
+packages = ["gtm_pilot"]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "gtm_pilot/**/*.py" },
+    { file = "gtm_pilot/**/*.tcss" },
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["gtm_pilot", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
