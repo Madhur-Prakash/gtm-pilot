@@ -22,7 +22,7 @@
 </div>
 
 gtm-pilot brings live GPU monitoring, snapshots, recordings, summaries, replays, and
-before-and-after comparisons into one focused menu. It runs the `gputaskman` executable
+before-and-after comparisons into one focused menu. It runs the [gputaskman](https://github.com/shanselman/gputaskman) executable
 already installed on your machine and presents its output without changing measurements,
 labels, process names, or `n/a` values.
 
