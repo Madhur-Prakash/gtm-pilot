@@ -11,6 +11,8 @@
   <a href="https://github.com/shanselman/gputaskman"><img src="https://img.shields.io/badge/backend-gputaskman-24292f.svg" alt="Backend: gputaskman"></a>
 </p>
 
+<p><a href="https://pypi.org/project/gtm-pilot/">View on PyPI</a></p>
+
 </div>
 
 gtm-pilot brings live GPU monitoring, snapshots, recordings, summaries, replays, and
