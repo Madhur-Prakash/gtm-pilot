@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from textual.widgets import OptionList, Static
+from textual.widgets import Button, Input, OptionList, Static
 
 from gtm_pilot.app import PilotApp
 from gtm_pilot.gputaskman import Gpu, Result
@@ -138,6 +138,72 @@ class AppTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             panel = str(app.screen.query_one("#gpus", Static).render())
             self.assertIn("driver went away", panel)
+
+    # ---------- short and narrow terminals ---------- #
+
+    async def _open_record_form(self, pilot, app):
+        await app.workers.wait_for_complete()
+        await pilot.pause()
+        await pilot.press("n")
+        await pilot.pause()
+        self.assertIsInstance(app.screen, OptionsForm)
+
+    async def test_record_form_keeps_its_buttons_on_a_short_terminal(self):
+        """The dialog is taller than a 30-row terminal: it must still fit"""
+        for height in (20, 24, 30, 40):
+            app = PilotApp(FakeGputaskman(), self.sessions)
+            async with app.run_test(size=(100, height)) as pilot:
+                await self._open_record_form(pilot, app)
+                screen = app.screen
+                for button in screen.query(Button):
+                    self.assertTrue(
+                        screen.region.contains_region(button.region),
+                        f"{button.id} is off a {height}-row screen: {button.region}",
+                    )
+
+    async def test_file_name_can_be_reached_and_typed_on_a_short_terminal(self):
+        app = PilotApp(FakeGputaskman(), self.sessions)
+        async with app.run_test(size=(100, 30)) as pilot:
+            await self._open_record_form(pilot, app)
+            screen = app.screen
+            box = screen.query_one("#field-name", Input)
+
+            for _ in range(10):  # tab round the fields until the name box has focus
+                if app.focused is box:
+                    break
+                await pilot.press("tab")
+                await pilot.pause()
+
+            self.assertIs(app.focused, box)
+            await pilot.pause()
+            self.assertTrue(screen.region.contains_region(box.region), box.region)
+
+            box.value = ""
+            await pilot.press("r", "u", "n")
+            self.assertEqual(box.value, "run")
+
+    async def test_narrow_terminal_stacks_the_dialog_buttons(self):
+        app = PilotApp(FakeGputaskman(), self.sessions)
+        async with app.run_test(size=(40, 30)) as pilot:
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            await pilot.press("m")  # Measure: its submit button is a long one
+            await pilot.pause()
+            screen = app.screen
+            for button in screen.query(Button):
+                self.assertTrue(
+                    screen.region.contains_region(button.region),
+                    f"{button.id} is off a 40-column screen: {button.region}",
+                )
+
+    async def test_missing_screen_scrolls_on_a_short_terminal(self):
+        app = PilotApp(None, self.sessions)
+        async with app.run_test(size=(100, 18)) as pilot:
+            await pilot.pause()
+            screen = app.screen
+            box = screen.query_one("#missing-box")
+            self.assertTrue(screen.region.contains_region(box.region), box.region)
+            self.assertGreater(box.max_scroll_y, 0)  # the rest is a scroll away
 
     async def test_live_view_hands_over_the_terminal(self):
         runner = FakeGputaskman()

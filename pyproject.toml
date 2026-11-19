@@ -1,6 +1,6 @@
 [project]
 name = "gtm-pilot"
-version = "1.0.2"
+version = "1.0.3"
 description = "A guided menu for gputaskman: live view, snapshots, recordings, summaries and before/after diffs without remembering the flags. Unofficial companion."
 # Shown as the project page on PyPI
 readme = { file = "README.md", content-type = "text/markdown" }

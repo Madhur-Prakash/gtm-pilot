@@ -9,12 +9,13 @@ from rich.text import Text
 from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, LoadingIndicator, Static
 
 from .. import commands
 from ..gputaskman import Gputaskman, Result
+from .fit import FitsTerminal
 from .output import render
 
 
@@ -27,7 +28,12 @@ def save_snapshot(runner: Gputaskman, gpu: int, path: Path) -> Result:
     return result
 
 
-class MeasureScreen(Screen):
+class MeasureScreen(FitsTerminal, Screen):
+    # Scroll the box rather than letting the buttons fall off a short terminal
+    BODY = "#measure-box"
+    BOX = None
+    BODY_MAX = 40
+
     BINDINGS = [Binding("escape", "back", "Back to menu")]
 
     def __init__(self, runner: Gputaskman, gpu: int, before: Path, after: Path):
@@ -40,7 +46,7 @@ class MeasureScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Vertical(id="measure-box"):
+        with VerticalScroll(id="measure-box"):
             yield Static(id="measure-status")
             yield LoadingIndicator(id="measure-loading")
             with Horizontal(classes="buttons", id="measure-buttons"):

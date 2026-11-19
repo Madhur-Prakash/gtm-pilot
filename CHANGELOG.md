@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.3](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.2...v1.0.3) - 2026-11-19
+
+Fixes dialogs and pages that ran off a small terminal.
+
+### Fixed
+
+- **Record Session: the file name could not be typed.** On a terminal around 30 rows the form
+  was taller than the screen, so the File name box and the Cancel / Start recording buttons
+  were drawn past the bottom edge with no way to reach them. Dialogs now cap their scrolling
+  part to the room the rest of the dialog leaves, so the bottom is always on screen.
+- The file picker, the `?` keys page, the Record and Measure pages and the "gputaskman not
+  found" page did the same on short terminals: the buttons, the last fields and the install
+  commands are now reachable, scrolling when they have to.
+- Long titles and field questions no longer run off the side of a narrow dialog, and dialog
+  buttons stack one per line when there isn't room for them side by side.
+- Dialogs re-fit themselves when the terminal is resized.
+
 ## [1.0.2](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.1...v1.0.2) - 2026-11-16
 
 Dependency and documentation update.

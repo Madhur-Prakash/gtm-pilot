@@ -17,6 +17,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Checkbox, Input, Label, Select, Static
 
 from ..gputaskman import Gpu
+from .fit import FitsTerminal
 
 # Select values are strings or numbers; these stand in for "None" choices
 ALL_GPUS = "all-gpus"
@@ -68,7 +69,7 @@ def parse_seconds(text: str) -> float | None:
     return value if value > 0 else None
 
 
-class OptionsForm(ModalScreen[dict | None]):
+class OptionsForm(FitsTerminal, ModalScreen[dict | None]):
     BINDINGS = [Binding("escape", "cancel", "Cancel")]
 
     def __init__(self, title: str, fields: list[Field], gpus: list[Gpu], submit_label: str = "Start"):
@@ -167,11 +168,16 @@ class OptionsForm(ModalScreen[dict | None]):
         for f in self.fields:
             value, error = self._read(f)
             if error:
-                self.query_one("#form-error", Static).update(error)
+                self._error(error)
                 return
             values[f.key] = value
 
         self.dismiss(values)
+
+    def _error(self, message: str) -> None:
+        # An error line makes the dialog taller: give the body back the room
+        self.query_one("#form-error", Static).update(message)
+        self.fit_body()
 
     def _read(self, f: Field) -> tuple[object, str | None]:
         if isinstance(f, ToggleField):

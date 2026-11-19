@@ -10,6 +10,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Label, Static
 
+from .fit import FitsTerminal
 from .menu import ACTIONS
 
 
@@ -57,7 +58,7 @@ def keys_table() -> Table:
     return table
 
 
-class KeysScreen(ModalScreen):
+class KeysScreen(FitsTerminal, ModalScreen):
     BINDINGS = [
         Binding("escape", "dismiss", "Close"),
         Binding("question_mark", "dismiss", "Close", show=False),

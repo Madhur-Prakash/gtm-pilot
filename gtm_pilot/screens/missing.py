@@ -5,11 +5,12 @@ from __future__ import annotations
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
+from textual.containers import VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
 from ..gputaskman import ENV_EXE
+from .fit import FitsTerminal
 
 
 def missing_message(explicit: str | None) -> Text:
@@ -44,7 +45,13 @@ def missing_message(explicit: str | None) -> Text:
     return text
 
 
-class MissingScreen(Screen):
+class MissingScreen(FitsTerminal, Screen):
+    # The message is long: it scrolls rather than running off a short
+    # terminal, where the install commands used to be out of reach
+    BODY = "#missing-box"
+    BOX = None
+    BODY_MAX = 40
+
     BINDINGS = [
         Binding("r", "retry", "Look again"),
         Binding("q", "app.quit", "Quit"),
@@ -57,12 +64,13 @@ class MissingScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Vertical(id="missing-box"):
+        with VerticalScroll(id="missing-box"):
             yield Static(missing_message(self.explicit), id="missing-message")
         yield Footer()
 
     def on_mount(self) -> None:
         self.sub_title = "gputaskman not found"
+        self.query_one("#missing-box").focus()
 
     def action_retry(self) -> None:
         if not self.app.retry_find():  # type: ignore[attr-defined]

@@ -13,12 +13,13 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, ProgressBar, Static
 
 from .. import commands
 from ..gputaskman import Gputaskman, Result
+from .fit import FitsTerminal
 from .output import OutputScreen
 
 # How long to let record finish its last sample after Stop before killing it
@@ -50,7 +51,12 @@ def elapsed_text(seconds: float) -> str:
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
 
 
-class RecordScreen(Screen):
+class RecordScreen(FitsTerminal, Screen):
+    # Scroll the box rather than letting Stop fall off a short terminal
+    BODY = "#record-box"
+    BOX = None
+    BODY_MAX = 40
+
     BINDINGS = [
         Binding("s", "stop", "Stop recording"),
         Binding("escape", "stop", "Stop", show=False),
@@ -76,7 +82,7 @@ class RecordScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Vertical(id="record-box"):
+        with VerticalScroll(id="record-box"):
             yield Static(id="record-title", classes="dialog-title")
             yield Static(id="record-status")
             yield ProgressBar(total=commands.expected_samples(self.interval, self.duration),

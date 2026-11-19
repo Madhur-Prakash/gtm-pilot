@@ -22,6 +22,7 @@ from textual.widgets.option_list import Option
 
 from ..pathcomplete import Match, PathSuggester, complete, matches, separator, suffixes_for
 from ..sessions import describe, recent_files
+from .fit import FitsTerminal
 
 
 class PathInput(Input):
@@ -56,8 +57,12 @@ class PathInput(Input):
             lists.first().focus()
 
 
-class FilePicker(ModalScreen[Path | None]):
+class FilePicker(FitsTerminal, ModalScreen[Path | None]):
     BINDINGS = [Binding("escape", "cancel", "Cancel")]
+
+    # The list of files is what gives way when the terminal is short
+    BODY = "#files"
+    BODY_MAX = 14
 
     def __init__(self, title: str, folder: Path, pattern: str):
         super().__init__()
@@ -115,6 +120,7 @@ class FilePicker(ModalScreen[Path | None]):
             options.highlighted = 0
         options.display = bool(self.shown)
         empty.display = not self.shown
+        self.fit_body()
 
     @staticmethod
     def _match_prompt(m: Match) -> Text:
@@ -196,4 +202,6 @@ class FilePicker(ModalScreen[Path | None]):
         self.dismiss(None)
 
     def _error(self, message: str) -> None:
+        # An error line makes the dialog taller: give the list back the room
         self.query_one("#picker-error", Static).update(Text(message))
+        self.fit_body()

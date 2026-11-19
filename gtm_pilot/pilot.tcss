@@ -27,7 +27,7 @@ OptionsForm, FilePicker, KeysScreen {
     width: 76;
     max-width: 95%;
     height: auto;
-    max-height: 90%;
+    max-height: 100%;
     border: thick $primary;
     background: $surface;
     padding: 1 2;
@@ -37,17 +37,22 @@ OptionsForm, FilePicker, KeysScreen {
     width: 100;
 }
 
+/* The scrolling part of a dialog. Its height is capped at run time, to
+   the room the title, errors and buttons leave: see screens/fit.py */
 .dialog-body {
     height: auto;
-    max-height: 24;
 }
 
+/* Labels are as wide as their text by default, which ran long titles and
+   questions off the side of a narrow dialog: wrap them instead */
 .dialog-title {
+    width: 100%;
     text-style: bold;
     margin-bottom: 1;
 }
 
 .field-label {
+    width: 100%;
     margin-top: 1;
     color: $text-muted;
 }
@@ -67,7 +72,6 @@ OptionsForm, FilePicker, KeysScreen {
 
 .dialog OptionList {
     height: auto;
-    max-height: 14;
 }
 
 .error {
