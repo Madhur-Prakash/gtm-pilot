@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.1.1...HEAD)
+
+### Fixed
+
+- `gtm-pilot --version` run from a source checkout (an editable install) now reports the
+  version in `pyproject.toml`, instead of the one it had when it was installed.
+
 ## [1.1.1](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.1.0...v1.1.1) - 2026-11-24
 
 Resume Recording now continues a recording exactly as it was started.
