@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import time
@@ -121,6 +122,37 @@ class RecordingSettingsTests(unittest.TestCase):
         self.assertIsNone(sessions.load_recording_settings(self.folder, self.folder / "a.jsonl"))
         sessions.save_recording_settings(self.folder, self.folder / "a.jsonl", sessions.RecordingSettings(0, 1.0, True))
         self.assertIsNotNone(sessions.load_recording_settings(self.folder, self.folder / "a.jsonl"))
+
+    def _recording(self, gaps, system=True, extra=""):
+        path = self.folder / "old.jsonl"
+        t, lines = 1795542652.0, []
+        for gap in [0, *gaps]:
+            t += gap
+            sample = {"taken": t, "gpu": "Test GPU B", "device": {"index": 1}}
+            if system:
+                sample["system"] = {"ram": 1}
+            lines.append(json.dumps(sample))
+        path.write_text("\n".join(lines) + "\n" + extra, encoding="utf-8")
+        return path
+
+    def test_infers_settings_from_the_samples(self):
+        # Samples land a few ms off, and one 5-minute pause in between
+        path = self._recording([10.02, 9.98, 300.0, 10.01, 9.99, 10.0])
+        got = sessions.infer_recording_settings(path)
+        self.assertEqual(got.interval, 10.0)
+        self.assertEqual(got.gpu_name, "Test GPU B")
+        self.assertEqual(got.gpu_index, 1)
+        self.assertTrue(got.system)
+
+    def test_infers_no_system_and_skips_a_half_written_line(self):
+        path = self._recording([0.5, 0.5, 0.5], system=False, extra='{"taken": 17')
+        got = sessions.infer_recording_settings(path)
+        self.assertEqual(got.interval, 0.5)
+        self.assertFalse(got.system)
+
+    def test_cannot_infer_from_one_sample(self):
+        self.assertIsNone(sessions.infer_recording_settings(self._recording([])))
+        self.assertIsNone(sessions.infer_recording_settings(self.folder / "missing.jsonl"))
 
     def test_not_listed_by_the_file_pickers(self):
         sessions.save_recording_settings(self.folder, self.folder / "a.jsonl", sessions.RecordingSettings(0, 1.0, True))

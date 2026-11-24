@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import statistics
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
@@ -91,6 +92,57 @@ def load_recording_settings(folder: Path, path: Path) -> RecordingSettings | Non
         return RecordingSettings(int(entry["gpu"]), float(entry["interval"]), bool(entry["system"]))
     except (TypeError, KeyError, ValueError):
         return None
+
+
+@dataclass(frozen=True)
+class RecordedSettings:
+    """Settings worked out from a recording's own samples, for recordings
+    made before gtm-pilot saved them (or by gputaskman directly)."""
+    gpu_name: str | None
+    gpu_index: int | None
+    interval: float
+    system: bool
+
+
+def infer_recording_settings(path: Path, max_samples: int = 200) -> RecordedSettings | None:
+    """Read the first samples of a recording: the interval is the median gap
+    between their 'taken' times (so a pause in between doesn't skew it), the
+    GPU and system RAM/CPU come from the samples themselves. None when the
+    file has fewer than two readable samples."""
+    samples = []
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                try:
+                    sample = json.loads(line)
+                except ValueError:
+                    continue  # a half-written last line
+                if isinstance(sample, dict) and isinstance(sample.get("taken"), (int, float)):
+                    samples.append(sample)
+                if len(samples) >= max_samples:
+                    break
+    except OSError:
+        return None
+
+    if len(samples) < 2:
+        return None
+
+    taken = [s["taken"] for s in samples]
+    gaps = sorted(b - a for a, b in zip(taken, taken[1:]) if b > a)
+    if not gaps:
+        return None
+    # Samples land a few ms either side of the interval: 9.98, 10.01 -> 10
+    interval = max(0.1, round(statistics.median(gaps), 1))
+
+    first = samples[0]
+    device = first.get("device") if isinstance(first.get("device"), dict) else {}
+    index = device.get("index")
+    return RecordedSettings(
+        gpu_name=first.get("gpu") if isinstance(first.get("gpu"), str) else None,
+        gpu_index=index if isinstance(index, int) else None,
+        interval=interval,
+        system=first.get("system") is not None,
+    )
 
 
 def snapshot_paths(folder: Path, label: str, now: datetime | None = None) -> tuple[Path, Path]:

@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.1](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.1.0...v1.1.1) - 2026-11-24
+
+Resume Recording now continues a recording exactly as it was started.
+
+### Fixed
+
+- **Resume Recording could change a recording's settings.** The form let you pick a different
+  GPU, sampling interval or system RAM/CPU setting, which mixed two kinds of samples in one
+  file. These are now fixed to the original settings and shown at the top of the form; only
+  how much longer to record is asked.
+- **Older recordings resumed at 1 s.** Recordings made before 1.1.0, or by gputaskman
+  directly, had no saved settings, so the form fell back to a 1 s interval even for a
+  recording taken every 10 s. gtm-pilot now works out the interval from the samples' own
+  timestamps (a pause in between doesn't throw it off), the GPU from its name, and whether
+  system RAM/CPU was recorded.
+
 ## [1.1.0](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.3...v1.1.0) - 2026-11-24
 
 Pause and resume recordings.

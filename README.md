@@ -151,8 +151,12 @@ shows the summary.
 
 To continue a recording after leaving it, even in a later gtm-pilot session, choose
 **Resume Recording** (`e`) and pick the file, or start gtm-pilot with `--resume FILE`.
-The form is filled in with the GPU, interval and system RAM/CPU setting the recording was
-started with; choose how much longer to record and continue.
+A recording always continues the way it was started: the GPU, the sampling interval and
+the system RAM/CPU setting are fixed to the original ones and shown at the top of the form,
+so you only choose how much longer to record. gtm-pilot takes them from the settings it saved
+when it started the recording, or, for recordings made before 1.1.0 or by gputaskman
+directly, works them out from the samples in the file. Only settings it can't determine are
+asked for.
 
 Summaries and replays cover every sample in the file. A pause shows up as a gap between
 sample timestamps.

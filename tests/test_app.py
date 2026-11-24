@@ -303,7 +303,13 @@ class AppTests(unittest.IsolatedAsyncioTestCase):
         async with app.run_test() as pilot:
             await app.workers.wait_for_complete()
             await pilot.pause()
-            self.assertIsInstance(app.screen, OptionsForm)
+            form = app.screen
+            self.assertIsInstance(form, OptionsForm)
+            # Known settings are fixed: only how much longer is asked
+            self.assertFalse(form.query("#field-gpu"))
+            self.assertFalse(form.query("#field-interval"))
+            self.assertFalse(form.query("#field-system"))
+            self.assertTrue(form.query("#field-duration"))
             await pilot.click("#submit")
             await pilot.pause()
 
@@ -313,6 +319,28 @@ class AppTests(unittest.IsolatedAsyncioTestCase):
                 ["record", "-o", str(path), "--gpu", "1", "-i", "5", "--no-system"],
             )
             self.assertEqual(app.screen.earlier_samples, 1)
+
+    async def test_resume_works_out_an_older_recordings_settings(self):
+        """Recorded before settings were saved: read them from the samples"""
+        runner = FakeGputaskman()
+        path = self.sessions / "old.jsonl"
+        path.write_text(
+            '{"taken": 100.0, "gpu": "Test GPU B", "device": {"index": 0}}\n'
+            '{"taken": 110.01, "gpu": "Test GPU B", "device": {"index": 0}}\n'
+            '{"taken": 119.99, "gpu": "Test GPU B", "device": {"index": 0}}\n'
+        )
+        app = PilotApp(runner, self.sessions, resume=path)
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            self.assertFalse(app.screen.query("#field-interval"))
+            await pilot.click("#submit")
+            await pilot.pause()
+            # GPU matched by name (index 1 in --list-gpus), every 10 s, no system section
+            self.assertEqual(
+                runner.starts()[0],
+                ["record", "-o", str(path), "--gpu", "1", "-i", "10", "--no-system"],
+            )
 
     async def test_resume_menu_action_opens_the_picker(self):
         app = PilotApp(FakeGputaskman(), self.sessions)

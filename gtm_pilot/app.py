@@ -20,6 +20,7 @@ from .sessions import (
     RecordingSettings,
     default_recording_name,
     file_label,
+    infer_recording_settings,
     is_plain_name,
     load_recording_settings,
     open_folder,
@@ -196,6 +197,26 @@ class PilotApp(App):
     def _do_resume(self) -> None:
         self._pick("Resume which recording?", "*.jsonl", self._resume_form)
 
+    def _recorded_settings(self, path: Path) -> dict:
+        """How path was recorded: the settings gtm-pilot saved when it started
+        it, else what its own samples show. Only what is known is returned."""
+        saved = load_recording_settings(self.sessions, path)
+        if saved:
+            return {"gpu": saved.gpu, "interval": saved.interval, "system": saved.system}
+
+        inferred = infer_recording_settings(path)
+        if inferred is None:
+            return {}
+
+        fixed: dict = {"interval": inferred.interval, "system": inferred.system}
+        # The GPU by name first: gputaskman's index for it is what --gpu takes
+        by_name = [g.index for g in self.gpus if g.name == inferred.gpu_name]
+        if len(by_name) == 1:
+            fixed["gpu"] = by_name[0]
+        elif inferred.gpu_index is not None and any(g.index == inferred.gpu_index for g in self.gpus):
+            fixed["gpu"] = inferred.gpu_index
+        return fixed
+
     def _resume_form(self, path: Path) -> None:
         """Continue a saved recording: same file, its own settings if known"""
         path = path.expanduser()
@@ -206,18 +227,33 @@ class PilotApp(App):
             self.notify("Needs a newer gputaskman (no 'record' command)", severity="warning")
             return
 
-        saved = load_recording_settings(self.sessions, path)
-        note = "same settings as before" if saved else "settings not known: pick them"
+        # A recording continues exactly as it was started, so its samples stay
+        # comparable: whatever is known is fixed, and only the rest is asked
+        fixed = self._recorded_settings(path)
+        fields = []
+        if "gpu" not in fixed:
+            fields.append(GpuField())
+        if "interval" not in fixed:
+            fields.append(SecondsField("interval", "Take a sample every", commands.INTERVALS, default=1.0))
+        fields.append(SecondsField("duration", "Record for (more)", commands.DURATIONS, default=None))
+        if "system" not in fixed:
+            fields.append(ToggleField("system", "Include system RAM/CPU", default=True))
+
+        title = f"Resume {path.name}"
+        if fixed:
+            known = []
+            if "gpu" in fixed:
+                known.append(f"GPU {fixed['gpu']}")
+            if "interval" in fixed:
+                known.append(f"a sample every {commands.secs(fixed['interval'])} s")
+            if "system" in fixed:
+                known.append("with system RAM/CPU" if fixed["system"] else "without system RAM/CPU")
+            title += f"\nContinues as recorded: {', '.join(known)}"
+
         self._form(
-            f"Resume {path.name} ({note})",
-            [
-                GpuField(default=saved.gpu if saved else None),
-                SecondsField("interval", "Take a sample every", commands.INTERVALS,
-                             default=saved.interval if saved else 1.0),
-                SecondsField("duration", "Record for (more)", commands.DURATIONS, default=None),
-                ToggleField("system", "Include system RAM/CPU", default=saved.system if saved else True),
-            ],
-            lambda v: self._start_recording(path, v, resuming=True),
+            title,
+            fields,
+            lambda v: self._start_recording(path, {**v, **fixed}, resuming=True),
             submit_label="Resume recording",
         )
 
