@@ -13,6 +13,9 @@ from gtm_pilot.screens.forms import OptionsForm
 from gtm_pilot.screens.menu import MenuScreen
 from gtm_pilot.screens.missing import MissingScreen
 from gtm_pilot.screens.output import OutputScreen
+from gtm_pilot.screens.files import FilePicker
+from gtm_pilot.screens.record import PAUSED, PAUSING, RECORDING, RecordScreen
+from gtm_pilot.sessions import RecordingSettings, save_recording_settings
 
 
 class FakeGputaskman:
@@ -39,6 +42,28 @@ class FakeGputaskman:
     def run_attached(self, *args):
         self.calls.append(list(map(str, args)))
         return 0
+
+    def start(self, *args, stdout, stderr):
+        """A record run that ends when it is told to (pause or stop)"""
+        self.calls.append(list(map(str, args)))
+        self.proc = FakeProc()
+        return self.proc
+
+    def starts(self):
+        return [c for c in self.calls if c and c[0] == "record"]
+
+
+class FakeProc:
+    def __init__(self):
+        self.returncode = None
+
+    def poll(self):
+        return self.returncode
+
+    def _end(self, *args):
+        self.returncode = 0
+
+    send_signal = terminate = kill = _end
 
 
 class AppTests(unittest.IsolatedAsyncioTestCase):
@@ -204,6 +229,99 @@ class AppTests(unittest.IsolatedAsyncioTestCase):
             box = screen.query_one("#missing-box")
             self.assertTrue(screen.region.contains_region(box.region), box.region)
             self.assertGreater(box.max_scroll_y, 0)  # the rest is a scroll away
+
+    # ---------- pause and resume ---------- #
+
+    async def _record(self, pilot, app, runner, duration=None, resuming=False):
+        await app.workers.wait_for_complete()
+        await pilot.pause()
+        path = self.sessions / "run.jsonl"
+        screen = RecordScreen(runner, path, 0, 1.0, duration, True, resuming=resuming)
+        app.push_screen(screen)
+        await pilot.pause()
+        return screen, path
+
+    async def test_pause_then_resume_appends_to_the_same_file(self):
+        runner = FakeGputaskman()
+        app = PilotApp(runner, self.sessions)
+        async with app.run_test() as pilot:
+            screen, path = await self._record(pilot, app, runner, duration=300.0)
+            path.write_text('{"s": 1}\n{"s": 2}\n')
+
+            await pilot.press("p")
+            # The fake record ends the moment it is told to, so the screen's
+            # own 0.5 s poll may already have seen it
+            self.assertIn(screen.state, (PAUSING, PAUSED))
+            screen._poll()
+            await pilot.pause()
+            self.assertEqual(screen.state, PAUSED)
+            self.assertEqual(screen.samples, 2)
+            self.assertEqual(str(screen.query_one("#pause", Button).label), "Resume")
+
+            await pilot.press("p")
+            await pilot.pause()
+            self.assertEqual(screen.state, RECORDING)
+            starts = runner.starts()
+            self.assertEqual(len(starts), 2)
+            self.assertEqual(starts[0][:3], starts[1][:3])  # record -o <same file>
+            # A timed recording resumes for the time it has left, not all of it
+            left = float(starts[1][starts[1].index("--duration") + 1])
+            self.assertLessEqual(left, 300.0)
+            self.assertGreater(left, 290.0)
+
+            with open(path, "a") as f:
+                f.write('{"s": 3}\n')
+            await pilot.press("s")
+            screen._poll()
+            await pilot.pause()
+            self.assertIsInstance(app.screen, OutputScreen)
+            self.assertEqual(screen.samples, 3)
+
+    async def test_stop_while_paused_finishes_straight_away(self):
+        runner = FakeGputaskman()
+        app = PilotApp(runner, self.sessions)
+        async with app.run_test() as pilot:
+            screen, path = await self._record(pilot, app, runner)
+            path.write_text('{"s": 1}\n')
+            await pilot.press("space")
+            screen._poll()
+            await pilot.pause()
+            self.assertEqual(screen.state, PAUSED)
+
+            await pilot.press("s")
+            await pilot.pause()
+            self.assertIsInstance(app.screen, OutputScreen)
+            self.assertEqual(len(runner.starts()), 1)  # never restarted
+
+    async def test_resume_form_uses_the_saved_settings(self):
+        runner = FakeGputaskman()
+        path = self.sessions / "old.jsonl"
+        path.write_text('{"s": 1}\n')
+        save_recording_settings(self.sessions, path, RecordingSettings(1, 5.0, False))
+
+        app = PilotApp(runner, self.sessions, resume=path)
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            self.assertIsInstance(app.screen, OptionsForm)
+            await pilot.click("#submit")
+            await pilot.pause()
+
+            self.assertIsInstance(app.screen, RecordScreen)
+            self.assertEqual(
+                runner.starts()[0],
+                ["record", "-o", str(path), "--gpu", "1", "-i", "5", "--no-system"],
+            )
+            self.assertEqual(app.screen.earlier_samples, 1)
+
+    async def test_resume_menu_action_opens_the_picker(self):
+        app = PilotApp(FakeGputaskman(), self.sessions)
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+            self.assertIsInstance(app.screen, FilePicker)
 
     async def test_live_view_hands_over_the_terminal(self):
         runner = FakeGputaskman()

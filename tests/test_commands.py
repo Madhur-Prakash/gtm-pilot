@@ -4,7 +4,8 @@ from pathlib import Path
 
 from gtm_pilot import commands
 from gtm_pilot.screens.forms import parse_seconds
-from gtm_pilot.screens.record import count_new_samples, elapsed_text
+from gtm_pilot.cli import resolve_resume
+from gtm_pilot.screens.record import count_new_samples, elapsed_text, remaining_duration
 
 
 class ArgsTests(unittest.TestCase):
@@ -50,6 +51,21 @@ class HelperTests(unittest.TestCase):
         self.assertIsNone(parse_seconds("0"))
         self.assertIsNone(parse_seconds("-1"))
         self.assertIsNone(parse_seconds("abc"))
+
+    def test_remaining_duration(self):
+        self.assertIsNone(remaining_duration(None, 30))
+        self.assertEqual(remaining_duration(300.0, 120.0), 180.0)
+        self.assertEqual(remaining_duration(60.0, 75.0), 0.0)
+
+    def test_resume_finds_a_recording(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            run = folder / "run.jsonl"
+            run.write_text("{}\n")
+            self.assertEqual(resolve_resume(run, Path("elsewhere")), run.resolve())
+            self.assertEqual(resolve_resume(Path("run.jsonl"), folder), run.resolve())
+            self.assertEqual(resolve_resume(Path("run"), folder), run.resolve())
+            self.assertIsNone(resolve_resume(Path("missing"), folder))
 
     def test_elapsed_text(self):
         self.assertEqual(elapsed_text(5), "00:05")

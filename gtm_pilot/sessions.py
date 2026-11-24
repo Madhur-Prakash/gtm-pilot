@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
 import sys
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -44,6 +46,51 @@ def default_recording_name(now: datetime | None = None) -> str:
 def recording_path(folder: Path, name: str) -> Path:
     name = name.strip()
     return folder / (name if name.endswith(".jsonl") else f"{name}.jsonl")
+
+
+# The settings each recording was started with, so Resume Recording can keep
+# recording it the same way. No .json extension: the snapshot pickers list
+# *.json files, and this isn't one to compare.
+SETTINGS_FILE = ".gtm-pilot-recordings"
+
+
+@dataclass(frozen=True)
+class RecordingSettings:
+    gpu: int
+    interval: float
+    system: bool
+
+
+def _settings_key(path: Path) -> str:
+    return str(path.expanduser().resolve())
+
+
+def _read_settings(folder: Path) -> dict:
+    try:
+        data = json.loads((folder / SETTINGS_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_recording_settings(folder: Path, path: Path, settings: RecordingSettings) -> None:
+    """Remember how path was recorded. Best effort: a read-only folder only
+    means Resume asks for the settings again."""
+    data = _read_settings(folder)
+    data[_settings_key(path)] = asdict(settings)
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / SETTINGS_FILE).write_text(json.dumps(data, indent=1), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def load_recording_settings(folder: Path, path: Path) -> RecordingSettings | None:
+    entry = _read_settings(folder).get(_settings_key(path))
+    try:
+        return RecordingSettings(int(entry["gpu"]), float(entry["interval"]), bool(entry["system"]))
+    except (TypeError, KeyError, ValueError):
+        return None
 
 
 def snapshot_paths(folder: Path, label: str, now: datetime | None = None) -> tuple[Path, Path]:

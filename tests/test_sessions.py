@@ -94,5 +94,39 @@ class FolderTests(unittest.TestCase):
             self.assertEqual(sessions.recent_files(folder / "missing", "*.jsonl"), [])
 
 
+class RecordingSettingsTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.folder = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_round_trip(self):
+        run = self.folder / "run.jsonl"
+        settings = sessions.RecordingSettings(gpu=1, interval=2.5, system=False)
+        sessions.save_recording_settings(self.folder, run, settings)
+        self.assertEqual(sessions.load_recording_settings(self.folder, run), settings)
+        self.assertIsNone(sessions.load_recording_settings(self.folder, self.folder / "other.jsonl"))
+
+    def test_kept_per_recording(self):
+        a, b = self.folder / "a.jsonl", self.folder / "b.jsonl"
+        sessions.save_recording_settings(self.folder, a, sessions.RecordingSettings(0, 1.0, True))
+        sessions.save_recording_settings(self.folder, b, sessions.RecordingSettings(1, 5.0, False))
+        self.assertEqual(sessions.load_recording_settings(self.folder, a).gpu, 0)
+        self.assertEqual(sessions.load_recording_settings(self.folder, b).gpu, 1)
+
+    def test_broken_file_is_ignored(self):
+        (self.folder / sessions.SETTINGS_FILE).write_text("not json")
+        self.assertIsNone(sessions.load_recording_settings(self.folder, self.folder / "a.jsonl"))
+        sessions.save_recording_settings(self.folder, self.folder / "a.jsonl", sessions.RecordingSettings(0, 1.0, True))
+        self.assertIsNotNone(sessions.load_recording_settings(self.folder, self.folder / "a.jsonl"))
+
+    def test_not_listed_by_the_file_pickers(self):
+        sessions.save_recording_settings(self.folder, self.folder / "a.jsonl", sessions.RecordingSettings(0, 1.0, True))
+        self.assertEqual(sessions.recent_files(self.folder, "*.json"), [])
+        self.assertEqual(sessions.recent_files(self.folder, "*.jsonl"), [])
+
+
 if __name__ == "__main__":
     unittest.main()

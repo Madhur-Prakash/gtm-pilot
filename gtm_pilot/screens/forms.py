@@ -30,6 +30,8 @@ class GpuField:
     key: str = "gpu"
     label: str = "GPU"
     allow_all: bool = False
+    # GPU index to start on (e.g. the one a recording being resumed used)
+    default: int | None = None
 
 
 @dataclass
@@ -107,10 +109,12 @@ class OptionsForm(FitsTerminal, ModalScreen[dict | None]):
                 (label, UNTIL_STOPPED if seconds is None else seconds)
                 for seconds, label in f.presets
             ]
-            options.append(("Custom...", CUSTOM))
             default = UNTIL_STOPPED if f.default is None else f.default
             if default not in [value for _, value in options]:
-                default = options[0][1]
+                # A value from earlier that isn't a preset (a resumed
+                # recording's custom interval): offer it as it was
+                options.append((f"{default:g} s", default))
+            options.append(("Custom...", CUSTOM))
 
             yield Select(options, value=default, allow_blank=False, id=f"field-{f.key}")
             yield Input(
@@ -131,7 +135,13 @@ class OptionsForm(FitsTerminal, ModalScreen[dict | None]):
         if not options:
             options = [("0 (gputaskman's default)", 0)]
 
-        return Select(options, value=options[0][1], allow_blank=False, id=f"field-{f.key}")
+        value = options[0][1]
+        if f.default is not None:
+            if f.default not in [v for _, v in options]:
+                options.append((f"{f.default} (not found now)", f.default))
+            value = f.default
+
+        return Select(options, value=value, allow_blank=False, id=f"field-{f.key}")
 
     def on_mount(self) -> None:
         for custom in self.query(".custom-seconds"):

@@ -17,11 +17,14 @@ from .screens.missing import MissingScreen
 from .screens.output import OutputScreen
 from .screens.record import RecordScreen
 from .sessions import (
+    RecordingSettings,
     default_recording_name,
     file_label,
     is_plain_name,
+    load_recording_settings,
     open_folder,
     recording_path,
+    save_recording_settings,
     snapshot_paths,
 )
 
@@ -31,13 +34,16 @@ class PilotApp(App):
     SUB_TITLE = "a guided menu for gputaskman"
     CSS_PATH = "pilot.tcss"
 
-    def __init__(self, runner: Gputaskman | None, sessions: Path, explicit_exe: str | None = None):
+    def __init__(self, runner: Gputaskman | None, sessions: Path, explicit_exe: str | None = None,
+                 resume: Path | None = None):
         """runner None means gputaskman wasn't found: an error screen explains
-        how to install it, and the menu opens once it is found"""
+        how to install it, and the menu opens once it is found. resume opens
+        Resume Recording for that file straight away (--resume)."""
         super().__init__()
         self.runner = runner
         self.sessions = sessions
         self.explicit_exe = explicit_exe
+        self.resume = resume
         self.gpus: list[Gpu] = []
         self.menu: MenuScreen | None = None
 
@@ -87,6 +93,11 @@ class PilotApp(App):
             self.menu.show_gpus(gpus, str(self.sessions), self.runner.exe, error)
         if error:
             self.notify(error, title="gputaskman failed", severity="error", timeout=10)
+
+        # --resume: once the GPU list is in, so the form can offer it
+        if gpus is not None and self.resume is not None:
+            path, self.resume = self.resume, None
+            self._resume_form(path)
 
     # ---------- dispatch ---------- #
 
@@ -152,9 +163,7 @@ class PilotApp(App):
 
         def start(v: dict) -> None:
             path = recording_path(self.sessions, v["name"])
-            self.push_screen(RecordScreen(
-                self.runner, path, v["gpu"], v["interval"], v["duration"], v["system"],
-            ))
+            self._start_recording(path, v)
 
         self._form(
             "Record Session",
@@ -172,6 +181,44 @@ class PilotApp(App):
             ],
             start,
             submit_label="Start recording",
+        )
+
+    def _start_recording(self, path: Path, v: dict, resuming: bool = False) -> None:
+        # Remember the settings, so Resume Recording can carry on the same way
+        save_recording_settings(
+            self.sessions, path, RecordingSettings(v["gpu"], v["interval"], v["system"]),
+        )
+        self.push_screen(RecordScreen(
+            self.runner, path, v["gpu"], v["interval"], v["duration"], v["system"],
+            resuming=resuming,
+        ))
+
+    def _do_resume(self) -> None:
+        self._pick("Resume which recording?", "*.jsonl", self._resume_form)
+
+    def _resume_form(self, path: Path) -> None:
+        """Continue a saved recording: same file, its own settings if known"""
+        path = path.expanduser()
+        if not path.is_file():
+            self.notify(f"No recording at {path}", severity="error")
+            return
+        if not self.runner.supports("record"):
+            self.notify("Needs a newer gputaskman (no 'record' command)", severity="warning")
+            return
+
+        saved = load_recording_settings(self.sessions, path)
+        note = "same settings as before" if saved else "settings not known: pick them"
+        self._form(
+            f"Resume {path.name} ({note})",
+            [
+                GpuField(default=saved.gpu if saved else None),
+                SecondsField("interval", "Take a sample every", commands.INTERVALS,
+                             default=saved.interval if saved else 1.0),
+                SecondsField("duration", "Record for (more)", commands.DURATIONS, default=None),
+                ToggleField("system", "Include system RAM/CPU", default=saved.system if saved else True),
+            ],
+            lambda v: self._start_recording(path, v, resuming=True),
+            submit_label="Resume recording",
         )
 
     def _do_summary(self) -> None:

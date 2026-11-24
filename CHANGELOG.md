@@ -5,6 +5,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.0](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.3...v1.1.0) - 2026-11-24
+
+Pause and resume recordings.
+
+### Added
+
+- **Pause and resume a recording while it runs.** Record Session has a Pause button, and
+  `p` or `Space` toggle it. Pausing ends the current `gputaskman record` run cleanly, so
+  every finished sample is kept and nothing is sampled while paused. Resuming appends to the
+  same file. A timed recording resumes for the time it has left, so paused time doesn't count
+  towards its duration. The status line shows the recorded time (paused time excluded), how
+  long it has been paused, and how many pauses there have been.
+- **Resume Recording** (`e` on the menu) continues any saved recording, even one from an
+  earlier gtm-pilot session, appending to the same file. The form is filled in with the GPU,
+  interval and system RAM/CPU setting the recording was started with.
+- **`--resume FILE`** on the command line opens Resume Recording for that file at start-up.
+  It accepts a path, or a recording name in the sessions folder with or without `.jsonl`.
+- gtm-pilot now saves the settings each recording starts with in `.gtm-pilot-recordings` in
+  the sessions folder.
+
+### Changed
+
+- The recording summary says how many times the recording was paused, and how to add to it
+  later.
+- Forms can start on a given GPU and on an interval that isn't one of the presets.
+
 ## [1.0.3](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.0.2...v1.0.3) - 2026-11-19
 
 Fixes dialogs and pages that ran off a small terminal.

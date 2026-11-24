@@ -42,6 +42,7 @@ def keys_table() -> Table:
     table.add_row("Enter", "Open the file, or go into the folder")
 
     section("Recording")
+    table.add_row("p or Space", "Pause / resume (nothing is sampled while paused)")
     table.add_row("s or Esc", "Stop (every finished sample is kept)")
 
     section("Output pages")

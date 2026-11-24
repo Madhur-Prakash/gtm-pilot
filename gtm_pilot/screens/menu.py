@@ -33,6 +33,8 @@ ACTIONS = [
     Action("snapshot", "Snapshot", "Current GPU use, once", "s", "Snapshot"),
     Action("record", "Record Session", "Log GPU use to a file over time", "n", "Record",
            needs="record"),
+    Action("resume", "Resume Recording", "Keep recording into a saved recording (appends to it)", "e",
+           "Resume", needs="record"),
     Action("summary", "Summarize Recording", "Averages, peaks and top processes of a recording", "u", "Summary",
            needs="summary"),
     Action("replay", "Replay Recording", "Play a recording back offline (q to come back)", "p", "Replay",

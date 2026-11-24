@@ -1,4 +1,4 @@
-"""Command line entry point: gtm-pilot [--sessions DIR] [--gputaskman PATH]"""
+"""Command line entry point: gtm-pilot [--sessions DIR] [--gputaskman PATH] [--resume FILE]"""
 
 from __future__ import annotations
 
@@ -39,16 +39,43 @@ def build_parser() -> argparse.ArgumentParser:
         "--gputaskman", metavar="PATH",
         help=f"gputaskman executable to run (default: ${ENV_EXE}, then gputaskman on PATH)",
     )
+    parser.add_argument(
+        "--resume", metavar="FILE", type=Path,
+        help="keep recording into a saved recording (.jsonl): opens Resume Recording for it, "
+             "with the settings it was recorded with. A bare name is looked for in the sessions folder.",
+    )
     parser.add_argument("--version", action="version", version=f"gtm-pilot {__version__}")
     return parser
 
 
+def resolve_resume(given: Path, sessions: Path) -> Path | None:
+    """The recording --resume names: the path as given, else the name in the
+    sessions folder, with or without its .jsonl"""
+    given = given.expanduser()
+    candidates = [given]
+    if not given.is_absolute():
+        candidates.append(sessions / given)
+    candidates += [c.with_name(c.name + ".jsonl") for c in list(candidates) if c.suffix != ".jsonl"]
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
 
     exe = find_gputaskman(args.gputaskman)
     runner = Gputaskman(exe) if exe else None
     sessions = (args.sessions or default_sessions_dir()).expanduser()
+
+    resume = None
+    if args.resume is not None:
+        resume = resolve_resume(args.resume, sessions)
+        if resume is None:
+            parser.error(f"--resume: no recording at {args.resume} (or in {sessions})")
 
     if runner is not None:
         # Ask gputaskman which subcommands it has before the UI starts
@@ -59,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Without gputaskman the app opens on an error screen with install
     # steps, and moves on to the menu if it is installed meanwhile
-    app = PilotApp(runner, sessions, explicit_exe=args.gputaskman)
+    app = PilotApp(runner, sessions, explicit_exe=args.gputaskman, resume=resume)
     app.run()
 
     if app.runner is None:

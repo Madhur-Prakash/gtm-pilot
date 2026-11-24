@@ -44,6 +44,7 @@ gtm-pilot is an independent, unofficial companion to [gputaskman](https://github
 - One-shot GPU snapshots.
 - Time-based or manually stopped recording sessions.
 - Live recording sample counts and progress.
+- Pause and resume a recording while it runs, or continue a saved recording later with its original settings.
 - Recording summaries and offline replays.
 - Before-and-after measurements for model loads and scripts.
 - Comparisons between saved JSON snapshots.
@@ -128,6 +129,7 @@ python -m gtm_pilot
 | `l` | Live View | Opens gputaskman's full-screen monitor. |
 | `s` | Snapshot | Captures one reading for a selected GPU. |
 | `n` | Record Session | Records GPU usage to a JSONL file. |
+| `e` | Resume Recording | Continues a saved recording, appending to the same file. |
 | `u` | Summarize Recording | Summarizes a saved recording. |
 | `p` | Replay Recording | Replays a recording offline. |
 | `m` | Measure a Change | Captures before and after snapshots, then runs a diff. |
@@ -138,6 +140,23 @@ python -m gtm_pilot
 | `?` | Show Keys | Opens the complete keyboard reference. |
 | `q` | Quit | Exits gtm-pilot. |
 
+### Pausing and resuming a recording
+
+While Record Session runs, press `p` (or `Space`, or the **Pause** button) to pause it.
+gtm-pilot ends the current `gputaskman record` run cleanly, so every finished sample stays
+in the file, and nothing is sampled while paused. Press `p` again to resume: a new run
+appends to the same file. A timed recording resumes for the time it has left, so paused
+time does not count towards its duration. `s` stops the recording, paused or not, and
+shows the summary.
+
+To continue a recording after leaving it, even in a later gtm-pilot session, choose
+**Resume Recording** (`e`) and pick the file, or start gtm-pilot with `--resume FILE`.
+The form is filled in with the GPU, interval and system RAM/CPU setting the recording was
+started with; choose how much longer to record and continue.
+
+Summaries and replays cover every sample in the file. A pause shows up as a gap between
+sample timestamps.
+
 ### Keyboard reference
 
 | Context | Keys | Action |
@@ -147,6 +166,7 @@ python -m gtm_pilot
 | File picker | `Tab` or `Right Arrow` | Complete the current path |
 | File picker | `Down Arrow` | Move from the path field to the list |
 | File picker | `Enter` | Open a file or enter a folder |
+| Recording | `p` or `Space` | Pause or resume recording |
 | Recording | `s` or `Esc` | Stop recording |
 | Output | Arrow keys, `Page Up`, `Page Down` | Scroll output |
 | Output | `Esc`, `q`, `Enter` | Return to the menu |
@@ -159,13 +179,18 @@ python -m gtm_pilot
 |---|---|---|
 | `--sessions DIR` | `GTM_PILOT_SESSIONS` | `~/gpu-sessions` |
 | `--gputaskman PATH` | `GTM_PILOT_GPUTASKMAN` | `gputaskman`, then `gtm` on `PATH` |
+| `--resume FILE` | - | Opens Resume Recording for `FILE` at start-up |
 
 Examples:
 
 ```powershell
 gtm-pilot --sessions D:\gpu-runs
 gtm-pilot --gputaskman D:\tools\gputaskman.exe
+gtm-pilot --resume training-run
 ```
+
+`--resume` accepts a path, or a recording name in the sessions folder with or without
+`.jsonl`. gtm-pilot exits with an error if no such recording exists.
 
 Command-line options take precedence over environment variables. Additional options:
 
@@ -203,7 +228,10 @@ llama3.1-8b_2026-11-13_21-10_after.json
 
 File behavior:
 
-- Existing recordings are appended to by gputaskman.
+- Existing recordings are appended to by gputaskman; Resume Recording relies on this.
+- The settings each recording was started with are kept in `.gtm-pilot-recordings` in the
+  sessions folder, so Resume Recording can reuse them. Deleting it only means Resume asks
+  for the settings again.
 - Snapshots are never overwritten.
 - Repeated measurements receive `-2`, `-3`, and later suffixes.
 - Measurement labels are made filesystem-safe and limited to 40 characters.
@@ -239,9 +267,11 @@ of being silently discarded.
 - Text-producing commands run away from the UI thread and appear in scrollable output pages.
 - Live View and Replay hand the terminal to gputaskman's own full-screen interface.
 - Record Session counts complete samples as they are written.
-- On Linux and macOS, stopping a recording sends `SIGINT`.
-- On Windows, stopping a background recording terminates its process after finished samples
-  have been preserved.
+- On Linux and macOS, stopping or pausing a recording sends `SIGINT`.
+- On Windows, stopping or pausing a background recording terminates its process after
+  finished samples have been preserved.
+- Pausing ends the record process rather than freezing it, so it works the same on every
+  OS; resuming starts a new `gputaskman record` on the same file.
 - Windows captured commands run without opening an extra console window.
 
 ## Development
