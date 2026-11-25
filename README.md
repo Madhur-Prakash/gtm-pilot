@@ -17,7 +17,7 @@
   ![Terminal TUI](https://img.shields.io/badge/Interface-Terminal%20TUI-6f42c1.svg)
   ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-555.svg)
 
-<p><a href="https://pypi.org/project/gtm-pilot/">View on PyPI</a></p>
+<p><a href="https://pypi.org/project/gtm-pilot/">View on PyPI</a> · <a href="https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CONTRIBUTING.md">Contributing</a> · <a href="https://github.com/Madhur-Prakash/gtm-pilot/blob/main/SECURITY.md">Security</a></p>
 
 </div>
 
@@ -33,8 +33,12 @@ gtm-pilot is an independent, unofficial companion to [gputaskman](https://github
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Data files](#data-files)
+- [Compatibility and error handling](#compatibility-and-error-handling)
 - [How it works](#how-it-works)
 - [Development](#development)
+- [Contributing](#contributing)
+- [Security](#security)
+- [Changelog](#changelog)
 - [License](#license)
 
 ## Features
@@ -288,6 +292,9 @@ python -m unittest discover -s tests
 uv build
 ```
 
+Setup, the project's rules, testing and the release steps are in the
+[contributing guide](https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CONTRIBUTING.md).
+
 Project layout:
 
 ```text
@@ -303,8 +310,24 @@ gtm_pilot/
 tests/              unit and UI tests using a fake gputaskman
 ```
 
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. Open an
+[issue](https://github.com/Madhur-Prakash/gtm-pilot/issues) for a bug or a feature request, and
+read the [contributing guide](https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CONTRIBUTING.md) before sending a pull request.
+
+## Security
+
+Please don't report security problems in public issues. See the
+[security policy](https://github.com/Madhur-Prakash/gtm-pilot/blob/main/SECURITY.md) for supported versions and how to report one privately.
+
+## Changelog
+
+Every release, and what is coming in the next one, is listed in the
+[changelog](https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CHANGELOG.md).
+
 ## License
 
-gtm-pilot is released under the [MIT License](LICENSE).
+gtm-pilot is released under the [MIT License](https://github.com/Madhur-Prakash/gtm-pilot/blob/main/LICENSE).
 
 gputaskman is a separate project by Scott Hanselman and remains under its own license.

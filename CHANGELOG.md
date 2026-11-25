@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased](https://github.com/Madhur-Prakash/gtm-pilot/compare/v1.1.1...HEAD)
 
+### Added
+
+- A [contributing guide](CONTRIBUTING.md): setting up a checkout, running the tests, the rules
+  the code follows, pull requests and the release steps.
+- A [security policy](SECURITY.md): supported versions, how to report a vulnerability
+  privately, and what is in scope.
+- The README, changelog, contributing guide and security policy now link to each other, and
+  PyPI's project page links to the changelog, contributing guide and security policy.
+
 ### Fixed
 
 - `gtm-pilot --version` run from a source checkout (an editable install) now reports the

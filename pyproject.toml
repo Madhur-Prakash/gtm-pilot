@@ -39,6 +39,9 @@ Repository = "https://github.com/Madhur-Prakash/gtm-pilot"
 Documentation = "https://github.com/Madhur-Prakash/gtm-pilot#readme"
 Homepage = "https://github.com/Madhur-Prakash/gtm-pilot"
 Issues = "https://github.com/Madhur-Prakash/gtm-pilot/issues"
+Changelog = "https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CHANGELOG.md"
+Contributing = "https://github.com/Madhur-Prakash/gtm-pilot/blob/main/CONTRIBUTING.md"
+Security = "https://github.com/Madhur-Prakash/gtm-pilot/blob/main/SECURITY.md"
 gputaskman = "https://github.com/shanselman/gputaskman"
 
 [build-system]
@@ -57,4 +60,4 @@ cache-keys = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["gtm_pilot", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
+include = ["gtm_pilot", "tests", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "LICENSE"]
